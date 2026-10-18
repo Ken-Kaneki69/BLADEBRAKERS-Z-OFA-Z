@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IBM z16 / Telum II — Enterprise Fraud Interception & Modernization Fabric</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --border: #dfe3e8;
+      --text: #161616;
+      --muted: #525252;
+      --blue: #0f62fe;
+      --blue-dark: #0043ce;
+      --green: #198038;
+      --green-bg: #defbe6;
+      --red: #da1e28;
+      --red-bg: #fff1f1;
+      --dark: #121619;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+    body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+    .topbar {
+      background: var(--dark); color: #fff; padding: 12px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 3px solid var(--blue);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .badge-ibm { background: #fff; color: var(--dark); font-weight: 800; padding: 3px 8px; border-radius: 3px; font-size: 11px; letter-spacing: 0.6px; }
+    .topbar-right { display: flex; gap: 20px; font-size: 12px; color: #c6c6c6; font-family: monospace; }
+    .dot-live { display: inline-block; width: 8px; height: 8px; background: #42be65; border-radius: 50%; margin-right: 5px; }
+
+    .container { max-width: 1380px; margin: 20px auto; padding: 0 20px; }
+    .main-tabs { display: flex; gap: 10px; margin-bottom: 16px; }
+    .tab-btn {
+      padding: 12px 20px; border: 1px solid var(--border); background: #e8ecef;
+      cursor: pointer; font-weight: 700; border-radius: 6px; color: var(--muted); transition: 0.15s;
+    }
+    .tab-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+    .sub-tabs { display: flex; gap: 8px; margin-bottom: 18px; background: #e5e9f0; padding: 5px; border-radius: 8px; width: fit-content; }
+    .sub-btn {
+      padding: 8px 16px; border: none; background: transparent; cursor: pointer;
+      font-weight: 600; border-radius: 6px; color: var(--muted);
+    }
+    .sub-btn.active { background: #fff; color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+    .grid-2 { display: grid; grid-template-columns: 440px 1fr; gap: 20px; align-items: start; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .card-title { font-size: 16px; font-weight: 700; }
+    .tag { font-size: 11px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin: 12px 0 5px; }
+    input[type="text"], input[type="number"], textarea {
+      width: 100%; padding: 9px 12px; border: 1px solid #c1c7cd; border-radius: 6px; font-size: 13px; font-family: monospace;
+    }
+
+    .item-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+    .item-card {
+      border: 1.5px solid var(--border); border-radius: 8px; padding: 10px; cursor: pointer;
+      transition: 0.15s; background: #fafbfc; position: relative;
+    }
+    .item-card:hover { border-color: var(--blue); background: #f0f5ff; }
+    .item-card.selected { border-color: var(--blue); background: #edf4ff; box-shadow: 0 0 0 2px rgba(15,98,254,0.18); }
+    .item-card.scam-item { border-color: #ffb3b8; background: #fff7f7; }
+    .item-card.scam-item.selected { border-color: var(--red); background: #fff0f1; }
+    .item-name { font-weight: 700; font-size: 12.5px; color: var(--text); }
+    .item-price { font-weight: 800; font-size: 13px; color: var(--blue); margin-top: 2px; }
+    .item-card.scam-item .item-price { color: var(--red); }
+    .item-merchant { font-size: 11px; color: var(--muted); }
+
+    .matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 6px; }
+    .matrix-item {
+      display: flex; align-items: center; gap: 7px; padding: 7px 9px;
+      border: 1px solid #d0d7de; border-radius: 6px; font-size: 11.5px; font-weight: 600;
+      cursor: pointer; background: #fff; user-select: none;
+    }
+    .matrix-item.active-attack { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+    .matrix-item input { accent-color: var(--red); }
+
+    .btn-primary {
+      width: 100%; background: var(--blue); color: #fff; border: none; padding: 12px;
+      font-weight: 700; border-radius: 6px; cursor: pointer; margin-top: 14px; font-size: 13.5px;
+    }
+    .btn-primary:hover { background: var(--blue-dark); }
+
+    .btn-buy-now {
+      width: 100%; background: var(--green); color: #fff; border: none; padding: 13px;
+      font-weight: 800; border-radius: 6px; cursor: pointer; font-size: 13.5px; transition: 0.15s;
+    }
+    .btn-buy-now:hover { background: #0e6027; }
+
+    .btn-rzp {
+      width: 100%; background: #072654; color: #fff; border: 1.5px solid #3395ff; padding: 13px;
+      font-weight: 800; border-radius: 6px; cursor: pointer; font-size: 13.5px; transition: 0.15s;
+    }
+    .btn-rzp:hover { background: #0a3575; }
+
+    .banner { padding: 14px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600; border: 1px solid transparent; }
+    .banner.safe { background: var(--green-bg); border-color: #6fdc8c; color: #0e6027; }
+    .banner.blocked { background: var(--red-bg); border-color: #ffb3b8; color: #a2191f; }
+
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+    .kpi-box { background: #f8f9fb; border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+    .kpi-label { font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+    .kpi-val { font-size: 20px; font-weight: 800; margin-top: 4px; font-family: monospace; }
+
+    .checkout-split { display: grid; grid-template-columns: 230px 1fr; gap: 18px; align-items: stretch; margin-bottom: 16px; }
+    .qr-panel {
+      border: 1px solid var(--border); border-radius: 8px; padding: 14px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: #fafbfc; position: relative; text-align: center;
+    }
+    .qr-locked-overlay {
+      position: absolute; inset: 0; background: rgba(18, 22, 25, 0.93); color: #fff;
+      border-radius: 8px; display: none; flex-direction: column; align-items: center;
+      justify-content: center; padding: 16px; text-align: center; z-index: 10;
+    }
+    .qr-locked-overlay.show { display: flex; }
+
+    .console-box {
+      background: #0d1117; color: #58a6ff; font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px; padding: 14px; border-radius: 8px; max-height: 280px; overflow-y: auto;
+      white-space: pre-wrap; border: 1px solid #30363d;
+    }
+
+    .receipt-box {
+      display: none; margin-top: 12px; padding: 14px; border-radius: 8px;
+      background: #defbe6; border: 1.5px solid #24a148; color: #0e6027; font-size: 12.5px;
+    }
+    .receipt-box.show { display: block; }
+
+    .halt-alert-box {
+      display: none; margin-top: 12px; padding: 14px; border-radius: 8px;
+      background: #fff1f1; border: 2px solid #da1e28; color: #a2191f; font-size: 12.5px;
+      animation: shake 0.35s ease-in-out;
+    }
+    .halt-alert-box.show { display: block; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    /* RAZORPAY VIRTUAL SANDBOX MODAL & INTERCEPTION MODAL */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(10, 14, 20, 0.78);
+      display: none; align-items: center; justify-content: center; z-index: 9999;
+    }
+    .modal-backdrop.show { display: flex; }
+
+    .rzp-modal {
+      width: 410px; background: #fff; border-radius: 12px; overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45); border: 1px solid #d0d7de;
+    }
+    .rzp-header {
+      background: #072654; color: #fff; padding: 18px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .rzp-test-pill {
+      background: #ffab00; color: #121619; font-weight: 800; font-size: 10px;
+      padding: 3px 8px; border-radius: 4px; text-transform: uppercase;
+    }
+    .rzp-body { padding: 18px 20px; }
+    .rzp-method {
+      border: 1.5px solid #dfe3e8; border-radius: 8px; padding: 11px 12px;
+      margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    }
+    .rzp-method.selected { border-color: #0f62fe; background: #f0f6ff; }
+
+    .hidden { display: none !important; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; font-family: monospace; }
+    th { background: #f0f3f6; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="badge-ibm">IBM z16 / TELUM II</span>
+      <strong>Enterprise Fraud Interception, Virtual Sandbox Commerce & Modernization Fabric</strong>
+    </div>
+    <div class="topbar-right">
+      <span><span class="dot-live"></span>HOST: <span id="arch-label">s390x</span></span>
+      <span>VIRTUAL SANDBOX WALLET: ₹<span id="wallet-balance">1,00,000.00</span></span>
+      <span>SLA TARGET: &lt; 0.50 ms</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="main-tabs">
+      <button class="tab-btn active" onclick="switchMainTab('tab-security', this)">1. Dual-Line UPI Commerce & Voice Security Fabric</button>
+      <button class="tab-btn" onclick="switchMainTab('tab-cobol', this)">2. Legacy COBOL-to-FastAPI AST Transpiler & Ledger</button>
+    </div>
+
+    <!-- ==================== TAB 1: SECURITY FABRIC ==================== -->
+    <div id="tab-security">
+      <div class="sub-tabs">
+        <button class="sub-btn active" onclick="switchSubTab('sub-upi', this)">1A. Instant Item Buy, Razorpay Test Sandbox & Injection Matrix</button>
+        <button class="sub-btn" onclick="switchSubTab('sub-voice', this)">1B. Standalone Acoustic MP3/WAV Deepfake Forensics Lab</button>
+      </div>
+
+      <!-- SUB-TAB 1A: UPI & DIRECT ITEM BUY -->
+      <div id="sub-upi" class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Store Catalog & Adversarial Matrix</span>
+            <span class="tag">14D Stacked AI</span>
+          </div>
+          <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">
+            Select an item below. When safe, Razorpay Test Sandbox settles using Virtual Money. When an attack is injected, tapping Razorpay immediately halts &amp; alerts!
+          </p>
+
+          <label>1. Select Item from Store Catalog</label>
+          <div class="item-grid">
+            <div class="item-card selected" onclick="selectCatalogItem(this, 'Flipkart Verified Store', 'flipkart.escrow@axisb', 79900, 'https://www.flipkart.com/checkout/iphone-16-pro-128gb', 'Apple iPhone 16 Pro (128GB)')">
+              <div class="item-name">📱 iPhone 16 Pro</div>
+              <div class="item-merchant">Flipkart Official</div>
+              <div class="item-price">₹79,900</div>
+            </div>
+            <div class="item-card" onclick="selectCatalogItem(this, 'Zomato Instant Dining', 'zomato.order@okicici', 1450, 'https://www.zomato.com/pay/order-884120', 'Zomato Family Dinner Combo')">
+              <div class="item-name">🍕 Zomato Dinner</div>
+              <div class="item-merchant">Zomato Verified</div>
+              <div class="item-price">₹1,450</div>
+            </div>
+            <div class="item-card" onclick="selectCatalogItem(this, 'Amazon India Retail', 'amazon.pay@apl', 54990, 'https://www.amazon.in/gp/buy/sony-ps5-slim-disc', 'Sony PlayStation 5 Slim')">
+              <div class="item-name">🎮 Sony PS5 Slim</div>
+              <div class="item-merchant">Amazon.in Official</div>
+              <div class="item-price">₹54,990</div>
+            </div>
+            <div class="item-card scam-item" onclick="selectCatalogItem(this, 'OLX Quick-Sell Army Officer', 'rahul.army.mule9981@fraud', 68000, 'http://olx-escrow-refund-claim.tk/pay?mode=02&collect=true', 'OLX Royal Enfield Bullet (Scam Trap)')">
+              <div class="item-name">⚠️ OLX Bike Escrow</div>
+              <div class="item-merchant">Unverified Mule Trap</div>
+              <div class="item-price">₹68,000</div>
+            </div>
+          </div>
+
+          <label>Merchant / Beneficiary Name</label>
+          <input type="text" id="upi-merchant" value="Flipkart Verified Store" oninput="runUpiSecurityCheck()" />
+
+          <label>Destination UPI VPA Handle</label>
+          <input type="text" id="upi-vpa" value="flipkart.escrow@axisb" oninput="runUpiSecurityCheck()" />
+
+          <label>Transaction Amount (Virtual INR)</label>
+          <input type="number" id="upi-amount" value="79900" oninput="runUpiSecurityCheck()" />
+
+          <label>Checkout Session URL</label>
+          <input type="text" id="upi-url" value="https://www.flipkart.com/checkout/iphone-16-pro-128gb" oninput="runUpiSecurityCheck()" />
+
+          <label style="color:var(--red); margin-top:14px;">2. Adversarial Packet Injection Matrix (Live Mutation)</label>
+          <div class="matrix-grid">
+            <label class="matrix-item" onclick="toggleAttackStyle(this)">
+              <input type="checkbox" class="atk-chk" value="SSL_STRIP" onchange="runUpiSecurityCheck()" />
+              SSL Strip (HTTP)
+            </label>
+            <label class="matrix-item" onclick="toggleAttackStyle(this)">
+              <input type="checkbox" class="atk-chk" value="VPA_SWAP" onchange="runUpiSecurityCheck()" />
+              Mule VPA Swap
+            </label>
+            <label class="matrix-item" onclick="toggleAttackStyle(this)">
+              <input type="checkbox" class="atk-chk" value="COLLECT_TRAP" onchange="runUpiSecurityCheck()" />
+              Collect Pull Trap
+            </label>
+            <label class="matrix-item" onclick="toggleAttackStyle(this)">
+              <input type="checkbox" class="atk-chk" value="HOMOGRAPH_IDN" onchange="runUpiSecurityCheck()" />
+              IDN Domain Spoof
+            </label>
+            <label class="matrix-item" onclick="toggleAttackStyle(this)">
+              <input type="checkbox" class="atk-chk" value="QR_TAMPER_AMOUNT" onchange="runUpiSecurityCheck()" />
+              QR Amount Tamper
+            </label>
+            <label class="matrix-item" onclick="toggleAttackStyle(this)">
+              <input type="checkbox" class="atk-chk" value="DEEPFAKE_VOICE_SYNC" onchange="runUpiSecurityCheck()" />
+              Vishing Call Sync
+            </label>
+          </div>
+
+          <div style="display:flex; gap:8px; margin-top:12px;">
+            <button class="btn-primary" style="margin-top:0;" onclick="runUpiSecurityCheck()">
+              ⚡ Re-Scan Packet Telemetry
+            </button>
+            <button class="btn-primary" style="margin-top:0; width:130px; background:#525252;" onclick="clearAllInjections()">
+              Reset Clean
+            </button>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: VERDICT, RAZORPAY TEST SANDBOX & QR GATE -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Telum II Pre-Flight Gate, Razorpay Virtual Sandbox & QR</span>
+            <span class="tag">MLP + GBDT + RF ENSEMBLE</span>
+          </div>
+
+          <div id="upi-banner" class="banner safe">
+            ✅ APPROVED FOR SETTLEMENT — NPCI &amp; TLS 1.3 Verified. Razorpay Test Sandbox &amp; UPI QR Active.
+          </div>
+
+          <div class="kpi-row">
+            <div class="kpi-box">
+              <div class="kpi-label">Telum Latency</div>
+              <div class="kpi-val" id="kpi-upi-lat">0.24 ms</div>
+            </div>
+            <div class="kpi-box">
+              <div class="kpi-label">Threat Probability</div>
+              <div class="kpi-val" id="kpi-upi-prob">1.2 %</div>
+            </div>
+            <div class="kpi-box">
+              <div class="kpi-label">VPA Handle Trust</div>
+              <div class="kpi-val" id="kpi-upi-vpa" style="font-size:15px;">VERIFIED</div>
+            </div>
+            <div class="kpi-box">
+              <div class="kpi-label">Enclave Gate</div>
+              <div class="kpi-val" id="kpi-upi-gate" style="font-size:15px; color:var(--green);">ARMED &amp; SAFE</div>
+            </div>
+          </div>
+
+          <div class="checkout-split">
+            <!-- QR CODE WITH HARD QUARANTINE OVERLAY -->
+            <div class="qr-panel">
+              <div style="font-size:11px; font-weight:700; color:var(--muted); margin-bottom:8px;">NPCI UPI DYNAMIC QR</div>
+              <div id="qrcode"></div>
+              <div id="qr-caption" style="font-size:11px; color:var(--green); font-weight:700; margin-top:8px;">
+                Scan with GPay / PhonePe
+              </div>
+
+              <div id="qr-lock-overlay" class="qr-locked-overlay">
+                <div style="font-size:28px; margin-bottom:6px;">🛑</div>
+                <div style="font-weight:800; font-size:13px; color:#ff8389; letter-spacing:0.4px;">
+                  UPI QR REDIRECT DESTROYED
+                </div>
+                <p style="font-size:11px; color:#e0e0e0; margin-top:6px; line-height:1.4;">
+                  IBM Telum II intercepted this transaction. The <code>upi://pay</code> URI was wiped in the LPAR enclave so scanning cannot open any UPI app.
+                </p>
+              </div>
+            </div>
+
+            <!-- DIRECT ITEM BUY & RAZORPAY VIRTUAL SANDBOX CARD -->
+            <div style="border:1px solid var(--border); border-radius:8px; padding:16px; background:#fafbfc; display:flex; flex-direction:column; justify-content:space-between;">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-size:11px; font-weight:700; color:var(--blue); text-transform:uppercase;">Razorpay Test Sandbox &amp; Direct Buy</span>
+                  <span id="item-badge-status" style="font-size:11px; font-weight:700; background:#defbe6; color:#0e6027; padding:2px 8px; border-radius:4px;">SANDBOX READY</span>
+                </div>
+                <h3 id="selected-item-title" style="font-size:17px; margin-top:6px;">Apple iPhone 16 Pro (128GB)</h3>
+                <div style="font-size:12.5px; color:var(--muted); margin-top:4px;">
+                  Merchant: <strong id="summary-merchant">Flipkart Verified Store</strong> &bull;
+                  VPA: <code id="summary-vpa">flipkart.escrow@axisb</code>
+                </div>
+                <div style="display:flex; align-items:baseline; gap:12px; margin-top:8px;">
+                  <span style="font-size:22px; font-weight:800; color:var(--text);" id="summary-amount">₹79,900.00</span>
+                  <span style="font-size:11px; font-weight:700; color:#b25000; background:#fff2d6; padding:2px 7px; border-radius:4px;">TEST VIRTUAL MONEY</span>
+                </div>
+              </div>
+
+              <div style="margin-top:14px;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                  <button id="btn-rzp-buy" class="btn-rzp" onclick="openRazorpayModal()">
+                    💳 Pay via Razorpay (Test API)
+                  </button<button class="btn-rzp" onclick="executeRazorpayXPayout()">
+                    💳 Issue RazorpayX Payout (Test API)
+                  </button>>
+                  <button id="btn-direct-buy" class="btn-buy-now" onclick="tapDirectItemBuy()">
+                    🛒 Instant 1-Click Buy Now
+                  </button>
+                </div>
+
+                <!-- Green Virtual Money Settlement Receipt -->
+                <div id="direct-buy-receipt" class="receipt-box"></div>
+
+                <!-- Red Mid-Flight Interception Alert Box -->
+                <div id="midflight-halt-alert" class="halt-alert-box"></div>
+              </div>
+            </div>
+          </div>
+
+          <label>Real-Time 14D Stacked Ensemble &amp; Hardware Enclave Telemetry</label>
+          <div id="upi-console" class="console-box">Initializing Telum II 14D UPI Security Engine...</div>
+        </div>
+      </div>
+
+      <!-- SUB-TAB 1B: STANDALONE VOICE LAB -->
+      <div id="sub-voice" class="grid-2 hidden">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Standalone Cellular Voice Deepfake Forensics</span>
+            <span class="tag">LINE B DSP ENGINE</span>
+          </div>
+          <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">
+            Upload any <code>.mp3</code> or <code>.wav</code> voice recording (or test our reference waveforms).
+          </p>
+
+          <label>Upload Voice Recording (.MP3 / .WAV)</label>
+          <input type="file" id="voice-file" accept=".wav,.mp3,.m4a,.ogg" style="margin-bottom:12px;" />
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <button class="tab-btn" style="font-size:12px; padding:10px;" onclick="runVoiceCheck('human')">
+              Test Preset: Authentic Human Voice
+            </button>
+            <button class="tab-btn" style="font-size:12px; padding:10px; border-color:#ffb3b8; color:var(--red); background:#fff5f5;" onclick="runVoiceCheck('ai')">
+              Test Preset: AI Cloned Deepfake Voice
+            </button>
+          </div>
+
+          <button class="btn-primary" onclick="runVoiceCheck('upload')">
+            Analyze Uploaded Audio &amp; Enforce Device UPI Policy
+          </button>
+
+          <hr style="margin:18px 0; border:none; border-top:1px solid var(--border);" />
+          <label>Listen to Reference Server Waveforms</label>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;">
+            <div>
+              <div style="font-size:11px; font-weight:600; margin-bottom:4px;">1. Natural Human Formants</div>
+              <audio controls src="/api/sample-audio/human" style="width:100%; height:34px;"></audio>
+            </div>
+            <div>
+              <div style="font-size:11px; font-weight:600; margin-bottom:4px;">2. AI Cloned Vocoder Stream</div>
+              <audio controls src="/api/sample-audio/ai" style="width:100%; height:34px;"></audio>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Acoustic Spectral Verdict &amp; Device Kill-Switch Status</span>
+            <span class="tag">10D FFT + ENSEMBLE</span>
+          </div>
+          <div id="voice-banner" class="banner safe">
+            ✅ AUTHENTIC HUMAN VOICE BIOMETRIC VERIFIED
+          </div>
+          <div class="kpi-row" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="kpi-box">
+              <div class="kpi-label">Inference Latency</div>
+              <div class="kpi-val" id="kpi-v-lat">0.28 ms</div>
+            </div>
+            <div class="kpi-box">
+              <div class="kpi-label">AI Clone Confidence</div>
+              <div class="kpi-val" id="kpi-v-prob">4.1 %</div>
+            </div>
+            <div class="kpi-box">
+              <div class="kpi-label">Cepstral Pitch Peak</div>
+              <div class="kpi-val" id="kpi-v-cep">0.3102</div>
+            </div>
+          </div>
+          <label>DSP Spectral &amp; Biometric Telemetry</label>
+          <div id="voice-console" class="console-box">Ready for acoustic inspection...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 2: COBOL & LEDGER ==================== -->
+    <div id="tab-cobol" class="grid-2 hidden">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Legacy Mainframe COBOL Settlement Source</span>
+          <span class="tag">AST LEXER</span>
+        </div>
+        <textarea id="cobol-input" rows="12">       IDENTIFICATION DIVISION.
+       PROGRAM-ID. UPI-ESCROW-SETTLEMENT.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 WS-TX-AMOUNT        PIC 9(7)V99.
+       01 WS-THREAT-SCORE     PIC 9V999.
+       01 WS-SETTLEMENT-FLAG  PIC X(24).
+       PROCEDURE DIVISION.
+           IF WS-THREAT-SCORE > 0.500 MOVE "FROZEN_IN_Z_ENCLAVE" TO WS-SETTLEMENT-FLAG.
+           IF WS-TX-AMOUNT > 50000.00 MOVE "REQUIRE_BIOMETRIC_MFA" TO WS-SETTLEMENT-FLAG.
+           STOP RUN.</textarea>
+        <button class="btn-primary" onclick="runCobolTranspiler()">Transpile COBOL to Native FastAPI Microservice</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Generated Python FastAPI Code &amp; SQLite ACID Escrow Ledger</span>
+          <span class="tag">LIVE S390X VAULT</span>
+        </div>
+        <div id="cobol-console" class="console-box" style="max-height:190px;">Click Transpile to generate cloud-native code...</div>
+        <label style="margin-top:16px;">Recent SQLite Hardware Enclave Escrow Ledger Entries</label>
+        <div style="max-height:210px; overflow-y:auto;">
+          <table>
+            <thead>
+              <tr><th>TX ID</th><th>Merchant</th><th>VPA</th><th>INR</th><th>Risk</th><th>Status</th></tr>
+            </thead>
+            <tbody id="ledger-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== RAZORPAY VIRTUAL MONEY SANDBOX MODAL ==================== -->
+  <div id="rzp-sandbox-backdrop" class="modal-backdrop">
+    <div class="rzp-modal">
+      <div class="rzp-header">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <strong style="font-size:15px;" id="rzp-modal-merchant">Flipkart Verified Store</strong>
+            <span class="rzp-test-pill">TEST MODE</span>
+          </div>
+          <div style="font-size:11px; color:#b0c4de; margin-top:2px; font-family:monospace;" id="rzp-modal-orderid">order_test_9918231</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:18px; font-weight:800;" id="rzp-modal-amount">₹79,900</div>
+          <div style="font-size:10px; color:#90ee90;">Telum II Verified</div>
+        </div>
+      </div>
+
+      <div class="rzp-body">
+        <div style="background:#fff8e6; border:1px solid #ffd580; padding:8px 10px; border-radius:6px; font-size:11.5px; color:#8a5300; margin-bottom:12px;">
+          💰 <strong>Razorpay Virtual Sandbox Wallet:</strong> ₹<span id="rzp-modal-wallet">1,00,000.00</span> available.<br/>
+          No real bank money is deducted in Test Mode.
+        </div>
+
+        <label style="margin-top:0;">Select Test Payment Method (Virtual Money)</label>
+        <div class="rzp-method selected" onclick="selectRzpMethod(this, 'TEST_UPI_VIRTUAL (success@razorpay)')">
+          <div>
+            <div style="font-weight:700; font-size:13px;">⚡ Razorpay Test UPI VPA</div>
+            <div style="font-size:11px; color:var(--muted); font-family:monospace;">Auto-Debits success@razorpay (Virtual INR)</div>
+          </div>
+          <span style="font-size:11px; font-weight:700; color:var(--blue);">INSTANT</span>
+        </div>
+
+        <div class="rzp-method" onclick="selectRzpMethod(this, 'TEST_VISA_CARD (4111-XXXX-1111)')">
+          <div>
+            <div style="font-weight:700; font-size:13px;">💳 Razorpay Test Visa Card</div>
+            <div style="font-size:11px; color:var(--muted); font-family:monospace;">4111 1111 1111 1111 &bull; OTP: 123456</div>
+          </div>
+          <span style="font-size:11px; font-weight:700; color:var(--green);">SANDBOX</span>
+        </div>
+
+        <div class="rzp-method" onclick="selectRzpMethod(this, 'TEST_NETBANKING_SBI')">
+          <div>
+            <div style="font-weight:700; font-size:13px;">🏦 Razorpay Test Netbanking (SBI)</div>
+            <div style="font-size:11px; color:var(--muted); font-family:monospace;">Simulated Bank Success Callback</div>
+          </div>
+          <span style="font-size:11px; font-weight:700; color:var(--muted);">TEST</span>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:16px;">
+          <button class="btn-buy-now" onclick="confirmRazorpayVirtualPayment()">
+            ✅ Pay Virtual Money Now
+          </button>
+          <button class="btn-primary" style="margin-top:0; width:110px; background:#6f6f6f;" onclick="closeRzpModal()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  let currentUpiGate = null;
+  let currentRzpOrder = null;
+  let selectedRzpMethod = "TEST_UPI_VIRTUAL (success@razorpay)";
+  let currentItemTitle = "Apple iPhone 16 Pro (128GB)";
+  let virtualWalletBalance = 100000.00;
+  let qrInstance = null;
+
+  function switchMainTab(id, btn) {
+    document.getElementById("tab-security").classList.add("hidden");
+    document.getElementById("tab-cobol").classList.add("hidden");
+    document.getElementById(id).classList.remove("hidden");
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    if (id === "tab-cobol") loadLedgerHistory();
+  }
+
+  function switchSubTab(id, btn) {
+    document.getElementById("sub-upi").classList.add("hidden");
+    document.getElementById("sub-voice").classList.add("hidden");
+    document.getElementById(id).classList.remove("hidden");
+    document.querySelectorAll(".sub-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  }
+
+  function toggleAttackStyle(labelEl) {
+    setTimeout(() => {
+      const chk = labelEl.querySelector("input");
+      if (chk.checked) labelEl.classList.add("active-attack");
+      else labelEl.classList.remove("active-attack");
+    }, 10);
+  }
+
+  function clearAllInjections() {
+    document.querySelectorAll(".atk-chk").forEach(c => {
+      c.checked = false;
+      c.parentElement.classList.remove("active-attack");
+    });
+    document.getElementById("midflight-halt-alert").classList.remove("show");
+    runUpiSecurityCheck();
+  }
+
+  function selectCatalogItem(cardEl, merchant, vpa, amount, url, itemTitle) {
+    document.querySelectorAll(".item-card").forEach(c => c.classList.remove("selected"));
+    cardEl.classList.add("selected");
+    currentItemTitle = itemTitle;
+    document.getElementById("upi-merchant").value = merchant;
+    document.getElementById("upi-vpa").value = vpa;
+    document.getElementById("upi-amount").value = amount;
+    document.getElementById("upi-url").value = url;
+    document.getElementById("selected-item-title").innerText = itemTitle;
+    document.getElementById("direct-buy-receipt").classList.remove("show");
+    document.getElementById("midflight-halt-alert").classList.remove("show");
+    runUpiSecurityCheck();
+  }
+
+  async function runUpiSecurityCheck() {
+    const merchant = document.getElementById("upi-merchant").value;
+    const vpa = document.getElementById("upi-vpa").value;
+    const amount = document.getElementById("upi-amount").value;
+    const url = document.getElementById("upi-url").value;
+    const flags = Array.from(document.querySelectorAll(".atk-chk:checked")).map(c => c.value).join(",");
+
+    const fd = new FormData();
+    fd.append("merchant", merchant);
+    fd.append("vpa", vpa);
+    fd.append("amount", amount);
+    fd.append("checkout_url", url);
+    fd.append("attack_flags", flags);
+
+    const res = await fetch("/api/upi/evaluate", { method: "POST", body: fd });
+    const data = await res.json();
+    currentUpiGate = data;
+
+    document.getElementById("summary-merchant").innerText = merchant;
+    document.getElementById("summary-vpa").innerText = data.line_a_forensics.inspected_vpa;
+    document.getElementById("summary-amount").innerText = "₹" + Number(data.line_a_forensics.inspected_amount_inr).toLocaleString("en-IN", { minimumFractionDigits: 2 });
+
+    document.getElementById("kpi-upi-lat").innerText = data.telum_latency_ms + " ms";
+    document.getElementById("kpi-upi-prob").innerText = data.threat_probability_pct + " %";
+    document.getElementById("kpi-upi-vpa").innerText = data.line_a_forensics.vpa_npci_verified ? "NPCI VERIFIED" : "UNTRUSTED VPA";
+    document.getElementById("kpi-upi-vpa").style.color = data.line_a_forensics.vpa_npci_verified ? "var(--green)" : "var(--red)";
+
+    const banner = document.getElementById("upi-banner");
+    const qrOverlay = document.getElementById("qr-lock-overlay");
+    const badgeStatus = document.getElementById("item-badge-status");
+    const gateKpi = document.getElementById("kpi-upi-gate");
+
+    const qrContainer = document.getElementById("qrcode");
+    qrContainer.innerHTML = "";
+    qrInstance = new QRCode(qrContainer, {
+      text: data.upi_deep_link,
+      width: 150,
+      height: 150,
+      colorDark: data.is_blocked ? "#8d8d8d" : "#121619",
+      colorLight: "#ffffff"
+    });
+
+    if (data.is_blocked) {
+      banner.className = "banner blocked";
+      banner.innerHTML = `🚨 <strong>THREAT ARMED (${data.threat_probability_pct}% Risk)</strong> — QR Redirect Nullified. ` +
+        `If you tap <strong>Pay via Razorpay</strong> or <strong>Instant Buy</strong> now, IBM Telum II will immediately HALT the transaction mid-flight!`;
+      qrOverlay.classList.add("show");
+      badgeStatus.style.background = "#fff1f1";
+      badgeStatus.style.color = "#da1e28";
+      badgeStatus.innerText = "KILL-SWITCH ARMED";
+      gateKpi.innerText = "INTERCEPT READY";
+      gateKpi.style.color = "var(--red)";
+    } else {
+      banner.className = "banner safe";
+      banner.innerHTML = `✅ <strong>APPROVED NPCI SETTLEMENT (${(100 - data.threat_probability_pct).toFixed(2)}% Trust Score)</strong><br/>` +
+        `TLS 1.3 &amp; VPA Verified in ${data.telum_latency_ms} ms. Tap <strong>Pay via Razorpay (Test API)</strong> to complete virtual payment.`;
+      qrOverlay.classList.remove("show");
+      badgeStatus.style.background = "#defbe6";
+      badgeStatus.style.color = "#0e6027";
+      badgeStatus.innerText = "SANDBOX READY";
+      gateKpi.innerText = "UNLOCKED";
+      gateKpi.style.color = "var(--green)";
+      document.getElementById("midflight-halt-alert").classList.remove("show");
+    }
+
+    document.getElementById("upi-console").innerText = JSON.stringify(data, null, 2);
+  }
+
+  async function tapRazorpayTestCheckout() {
+    document.getElementById("direct-buy-receipt").classList.remove("show");
+    document.getElementById("midflight-halt-alert").classList.remove("show");
+
+    const merchant = document.getElementById("upi-merchant").value;
+    const vpa = document.getElementById("upi-vpa").value;
+    const amount = document.getElementById("upi-amount").value;
+    const url = document.getElementById("upi-url").value;
+    const flags = Array.from(document.querySelectorAll(".atk-chk:checked")).map(c => c.value).join(",");
+
+    const fd = new FormData();
+    fd.append("merchant", merchant);
+    fd.append("vpa", vpa);
+    fd.append("amount", amount);
+    fd.append("checkout_url", url);
+    fd.append("attack_flags", flags);
+
+    const res = await fetch("/api/razorpay/create-test-order", { method: "POST", body: fd });
+    const orderData = await res.json();
+    currentRzpOrder = orderData;
+
+    document.getElementById("upi-console").innerText = JSON.stringify(orderData, null, 2);
+
+    // IF THREAT DETECTED -> IMMEDIATELY HALT & ALERT!
+    if (orderData.halted_by_telum) {
+      const haltBox = document.getElementById("midflight-halt-alert");
+      haltBox.classList.add("show");
+      const injectedList = orderData.active_injections.length
+        ? orderData.active_injections.map(i => i.code).join(", ")
+        : "UNTRUSTED_VPA_OR_PHISHING_URI";
+
+      haltBox.innerHTML = `
+        <div style="font-size:14px; font-weight:800; margin-bottom:4px;">
+          🛑 RAZORPAY TRANSACTION HALTED MID-FLIGHT BY IBM TELUM II!
+        </div>
+        <div><strong>Interception Latency:</strong> <code>${orderData.telum_latency_ms} ms</code> &bull; <strong>Threat Score:</strong> <code>${orderData.threat_probability_pct}%</code></div>
+        <div><strong>Blocked Destination:</strong> <code>${orderData.inspected_vpa}</code> (₹${Number(orderData.amount_inr).toLocaleString("en-IN")})</div>
+        <div><strong>Triggered Vectors:</strong> <code>${injectedList}</code></div>
+        <div><strong>Enclave Vault Seal:</strong> <code>${orderData.enclave_seal.slice(0, 40)}...</code></div>
+        <div style="margin-top:6px; font-weight:700; color:#750e13;">
+          Virtual Wallet Untouched: ₹0.00 deducted. Gateway socket terminated inside s390x LPAR.
+        </div>
+      `;
+      alert(
+        "🚨 IBM TELUM II KILL-SWITCH INTERCEPTION!\n\n" +
+        "Razorpay payment was immediately HALTED before gateway authorization!\n\n" +
+        "• Threat Confidence: " + orderData.threat_probability_pct + "%\n" +
+        "• Interception Latency: " + orderData.telum_latency_ms + " ms\n" +
+        "• Blocked VPA: " + orderData.inspected_vpa + "\n" +
+        "• Amount Protected: ₹" + Number(orderData.amount_inr).toLocaleString("en-IN") + "\n\n" +
+        "Your Virtual Sandbox Money is 100% safe."
+      );
+      return;
+    }
+
+    // IF SAFE -> OPEN RAZORPAY TEST SANDBOX MODAL WITH VIRTUAL MONEY
+    document.getElementById("rzp-modal-merchant").innerText = orderData.merchant;
+    document.getElementById("rzp-modal-orderid").innerText = orderData.razorpay_test_order_id;
+    document.getElementById("rzp-modal-amount").innerText = "₹" + Number(orderData.amount_inr).toLocaleString("en-IN");
+    document.getElementById("rzp-modal-wallet").innerText = virtualWalletBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 });
+    document.getElementById("rzp-sandbox-backdrop").classList.add("show");
+  }
+
+  function selectRzpMethod(el, methodLabel) {
+    document.querySelectorAll(".rzp-method").forEach(m => m.classList.remove("selected"));
+    el.classList.add("selected");
+    selectedRzpMethod = methodLabel;
+  }
+
+  function closeRzpModal() {
+    document.getElementById("rzp-sandbox-backdrop").classList.remove("show");
+  }
+
+  async function confirmRazorpayVirtualPayment() {
+    if (!currentRzpOrder) return;
+    closeRzpModal();
+
+    const fd = new FormData();
+    fd.append("tx_id", currentRzpOrder.tx_id);
+    fd.append("order_id", currentRzpOrder.razorpay_test_order_id);
+    fd.append("payment_method", selectedRzpMethod);
+    fd.append("merchant", currentRzpOrder.merchant);
+    fd.append("vpa", currentRzpOrder.inspected_vpa);
+    fd.append("amount", currentRzpOrder.amount_inr);
+    fd.append("checkout_url", currentRzpOrder.inspected_url);
+
+    const res = await fetch("/api/razorpay/verify-test-payment", { method: "POST", body: fd });
+    const paid = await res.json();
+
+    virtualWalletBalance = Math.max(0, virtualWalletBalance - Number(paid.amount_settled_inr));
+    document.getElementById("wallet-balance").innerText = virtualWalletBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 });
+
+    const receipt = document.getElementById("direct-buy-receipt");
+    receipt.classList.add("show");
+    receipt.innerHTML = `
+      <div style="font-size:13.5px; font-weight:800; margin-bottom:4px;">
+        ✅ RAZORPAY TEST SANDBOX PAYMENT CAPTURED (VIRTUAL MONEY)
+      </div>
+      <div><strong>Item Purchased:</strong> ${currentItemTitle}</div>
+      <div><strong>Razorpay Order ID:</strong> <code>${paid.razorpay_order_id}</code> &bull; <strong>Payment ID:</strong> <code>${paid.razorpay_payment_id}</code></div>
+      <div><strong>Method:</strong> <code>${paid.payment_method}</code> &bull; <strong>Virtual INR Paid:</strong> <strong>₹${Number(paid.amount_settled_inr).toLocaleString("en-IN")}</strong></div>
+      <div><strong>HMAC-SHA256 Signature:</strong> <code>${paid.razorpay_signature.slice(0, 38)}...</code></div>
+    `;
+    document.getElementById("upi-console").innerText = JSON.stringify(paid, null, 2);
+  }
+
+  async function tapDirectItemBuy() {
+    // Runs the exact same real-time Telum II pre-flight interception check
+    await tapRazorpayTestCheckout();
+  }
+
+  async function runVoiceCheck(mode) {
+    const fd = new FormData();
+    if (mode === "upload") {
+      const fileInput = document.getElementById("voice-file");
+      if (!fileInput.files.length) {
+        alert("Please select an .mp3 or .wav file first!");
+        return;
+      }
+      fd.append("audio_file", fileInput.files[0]);
+      fd.append("preset_type", "none");
+    } else {
+      fd.append("preset_type", mode);
+    }
+
+    const res = await fetch("/api/voice/forensics", { method: "POST", body: fd });
+    const data = await res.json();
+
+    document.getElementById("kpi-v-lat").innerText = data.telum_inference_latency_ms + " ms";
+    document.getElementById("kpi-v-prob").innerText = data.ai_confidence_pct + " %";
+    document.getElementById("kpi-v-cep").innerText = data.dsp_metrics.cepstral_pitch_prominence;
+
+    const banner = document.getElementById("voice-banner");
+    if (data.is_deepfake) {
+      banner.className = "banner blocked";
+      banner.innerHTML = `🚨 <strong>SYNTHETIC AI VOICE CLONE DETECTED (${data.ai_confidence_pct}% Confidence)</strong><br/>` +
+        `Personal Device Action: <code>${data.device_kill_switch}</code>`;
+    } else {
+      banner.className = "banner safe";
+      banner.innerHTML = `✅ <strong>AUTHENTIC HUMAN VOICE BIOMETRIC VERIFIED (${(100 - data.ai_confidence_pct).toFixed(2)}% Natural)</strong><br/>` +
+        `Device Status: <code>${data.device_kill_switch}</code>`;
+    }
+    document.getElementById("voice-console").innerText = JSON.stringify(data, null, 2);
+  }
+
+  async function runCobolTranspiler() {
+    const fd = new FormData();
+    fd.append("cobol_code", document.getElementById("cobol-input").value);
+    const res = await fetch("/api/cobol/transpile", { method: "POST", body: fd });
+    const data = await res.json();
+    document.getElementById("cobol-console").innerText = data.fastapi_code;
+    loadLedgerHistory();
+  }
+
+  async function loadLedgerHistory() {
+    const res = await fetch("/api/ledger/history");
+    const data = await res.json();
+    const tbody = document.getElementById("ledger-tbody");
+    tbody.innerHTML = data.ledger_entries.map(r => `
+      <tr>
+        <td>${r.tx_id}</td>
+        <td>${r.merchant}</td>
+        <td>${r.vpa}</td>
+        <td>₹${Number(r.amount).toLocaleString("en-IN")}</td>
+        <td>${(r.threat_prob * 100).toFixed(1)}%</td>
+        <td style="color:${r.status.includes('FROZEN') || r.status.includes('HALTED') ? 'var(--red)' : 'var(--green)'}; font-weight:700;">${r.status}</td>
+      </tr>
+    `).join("");
+  }
+
+  window.onload = async () => {
+    const specRes = await fetch("/api/system-specs");
+    const specs = await specRes.json();
+    document.getElementById("arch-label").innerText = `${specs.architecture} (${specs.os})`;
+    runUpiSecurityCheck();
+    runVoiceCheck("human");
+  };
+// Add this function to your JavaScript block in index.html
+  async function executeRazorpayXPayout() {
+    document.getElementById("direct-buy-receipt").classList.remove("show");
+    document.getElementById("midflight-halt-alert").classList.remove("show");
+
+    const fd = new FormData();
+    fd.append("merchant", document.getElementById("upi-merchant").value);
+    fd.append("vpa", document.getElementById("upi-vpa").value);
+    fd.append("amount", document.getElementById("upi-amount").value);
+    fd.append("checkout_url", document.getElementById("upi-url").value);
+    fd.append("attack_flags", Array.from(document.querySelectorAll(".atk-chk:checked")).map(c => c.value).join(","));
+
+    // Call RazorpayX Backend Payout API
+    const res = await fetch("/api/razorpayx/payout", { method: "POST", body: fd });
+    const payoutData = await res.json();
+
+    if (payoutData.halted_by_telum) {
+        const haltBox = document.getElementById("midflight-halt-alert");
+        haltBox.classList.add("show");
+        haltBox.innerHTML = `
+            <div style="font-size:14px; font-weight:800;">🛑 RAZORPAY-X PAYOUT HALTED MID-FLIGHT!</div>
+            <div><strong>Latency:</strong> <code>${payoutData.telum_latency_ms} ms</code> &bull; <strong>Threat Score:</strong> <code>${payoutData.threat_probability_pct}%</code></div>
+            <div><strong>Blocked VPA:</strong> <code>${payoutData.inspected_vpa}</code> &bull; <strong>Status:</strong> <code>FROZEN IN ENCLAVE</code></div>
+        `;
+        alert("🚨 SECURITY KILL-SWITCH INTERCEPTION!\n\nRazorpayX Payout was immediately HALTED!\n\n• Threat Score: " + payoutData.threat_probability_pct + "%\n• Blocked VPA: " + payoutData.inspected_vpa);
+        return;
+    }
+
+    // Deduct from Virtual Wallet
+    const amountSettled = payoutData.razorpayx_response.amount / 100;
+    virtualWalletBalance = Math.max(0, virtualWalletBalance - amountSettled);
+    document.getElementById("wallet-balance").innerText = virtualWalletBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 });
+
+    // Show RazorpayX Success Receipt
+    const receipt = document.getElementById("direct-buy-receipt");
+    receipt.classList.add("show");
+    receipt.innerHTML = `
+        <div style="font-weight:800;">✅ RAZORPAY-X TEST PAYOUT PROCESSED</div>
+        <div><strong>Payout ID:</strong> <code>${payoutData.razorpayx_response.id}</code> &bull; <strong>Mode:</strong> <code>${payoutData.razorpayx_response.mode}</code></div>
+        <div><strong>Amount Sent:</strong> ₹${amountSettled.toLocaleString("en-IN")} to <code>${payoutData.inspected_vpa}</code></div>
+        <div><strong>HMAC Enclave Seal:</strong> <code>${payoutData.enclave_seal.slice(0, 32)}...</code></div>
+    `;
+    document.getElementById("upi-console").innerText = JSON.stringify(payoutData.razorpayx_response, null, 2);
+}
+function openRazorpayModal() {
+    var options = {
+        "key": "rzp_test_1DP5mmOlF5G5ag", // Razorpay Test Key
+        "amount": "50000", // 50000 paise = ₹500
+        "currency": "INR",
+        "name": "IBM Datathon Demo",
+        "description": "Secure Transaction",
+        "handler": function (response) {
+            // This runs when payment is successful
+            alert("✅ Payment Success! Payment ID: " + response.razorpay_payment_id);
+            console.log(response);
+        },
+        "prefill": {
+            "name": "Datathon Judge",
+            "email": "judge@linuxone.com",
+            "contact": "9999999999"
+        },
+        "theme": {
+            "color": "#0f62fe"
+        }
+    };
+
+    var rzp1 = new Razorpay(options);
+
+    rzp1.on('payment.failed', function (response){
+        alert("Payment Failed: " + response.error.description);
+    });
+
+    rzp1.open(); // This command actually opens the pop-up modal
+}
+</script>
+</body>
+</html>
